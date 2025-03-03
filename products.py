@@ -1,3 +1,5 @@
+import promotion
+
 class Product:
     def __init__(self, name, price, quantity):
         if not name:
@@ -7,10 +9,11 @@ class Product:
         if quantity < 0:
             raise ValueError("quantity cannot be negative")
 
-        self.name = name
+        self._name = name
         self.price = price
         self.quantity = quantity
         self.active = True
+        self.promotion = None
 
 
     def get_quantity(self) :
@@ -41,10 +44,21 @@ class Product:
         """Deactivates the product."""
         self.active = False
 
+    def get_promotion(self):
+        """Returns the current promotion of the product."""
+        return self.promotion
+
+    def set_promotion(self, promotion):
+        from promotion import Promotion  # Import inside the method to avoid circular import
+        if not isinstance(promotion, Promotion):
+            raise TypeError("Invalid promotion type.")
+        self.promotion = promotion
+
 
     def show(self) :
         """Returns a string that represents the product"""
-        return f"{self.name}, Price{self.price}, Quantity{self.quantity}"
+        promo_info = f"Promotion:{self.promotion.name}"if self.promotion else""
+        return f"{self._name}, Price{self.price}, Quantity{self.quantity}{promo_info}"
 
 
     def buy(self, quantity):
@@ -53,11 +67,14 @@ class Product:
         if quantity > self.quantity:
             raise ValueError("not enough stock available")
 
+        # Apply promotion if available
+        total_price = self.promotion.apply_promotion(self, quantity) if self.promotion else self.price * quantity
+
         self.quantity -= quantity
         if self.quantity == 0:
             self.deactivate()
 
-        return quantity * self.price
+        return total_price
 
 
 # NonStockedProduct class: inherits from Product
@@ -69,7 +86,7 @@ class NonStockedProduct(Product):
 
     def show(self):
         # Override the show method to reflect the maximum purchase limit
-        return f"{self.name}, {self.price},This product is not stocked and quantity is always 0."
+        return f"{self._name}, {self.price},This product is not stocked and quantity is always 0."
 
 
     def buy(self, quantity):
@@ -88,7 +105,7 @@ class LimitedProduct(Product):
 
     def show(self):
         # Override the show method to reflect the maximum purchase limit
-        return f"{self.name}, Price: {self.price}, Maximum per order: {self.maximum}"
+        return f"{self._name}, Price: {self.price}, Maximum per order: {self.maximum}"
 
 
     def buy(self,quantity):
