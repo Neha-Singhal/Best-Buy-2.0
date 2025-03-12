@@ -1,35 +1,40 @@
-import products
-import store
-import promotion
+from products import Product, NonStockedProduct, LimitedProduct
+from store import Store
+from promotion import PercentDiscount, SecondHalfPrice, ThirdOneFree
 
 
 def main():
-    """ setup initial stock of inventory"""
-    product_list = [ products.Product("MacBook Air M2", price=1450, quantity=100),
-                     products.Product("Bose QuietComfort Earbuds", price=250, quantity=500),
-                     products.Product("Google Pixel 7", price=500, quantity=250),
-                     products.NonStockedProduct("Windows License", price=125),
-                     products.LimitedProduct("Shipping", price=10, quantity=250, maximum=1)
-                     ]
+    """Main function to set up the store, add products, apply promotions, and process orders."""
 
-    # Create promotion catalog
-    second_half_price = promotion.SecondHalfPrice("Second Half price!")
-    third_one_free = promotion.ThirdOneFree("Third One Free!")
-    thirty_percent = promotion.PercentDiscount("30% off!", percent=30)
+    # Create products
+    macbook = Product("MacBook Air M2", price=1450, quantity=100)
+    earbuds = Product("Bose QuietComfort Earbuds", price=250, quantity=500)
+    pixel_phone = Product("Google Pixel 7", price=500, quantity=250)
+    windows_license = NonStockedProduct("Windows License", price=125)
+    shipping_fee = LimitedProduct("Shipping Fee", price=10, quantity=250, maximum=1)
 
-    # Add promotions to products
-    product_list[0].set_promotion(second_half_price)
-    product_list[1].set_promotion(third_one_free)
-    product_list[3].set_promotion(thirty_percent)
+    # Create promotions
+    discount_10_percent = PercentDiscount("10% Off", percent=10)
+    second_half_price = SecondHalfPrice("Second Item Half Price")
+    buy_two_get_one = ThirdOneFree("Buy 2, Get 1 Free")
 
-    best_buy = store.Store(product_list)
+    # Apply promotions to products
+    macbook.set_promotion(discount_10_percent)
+    earbuds.set_promotion(second_half_price)
+    pixel_phone.set_promotion(buy_two_get_one)
+    windows_license.set_promotion(PercentDiscount("30% Off", percent=30))  # Apply promotion to NonStockedProduct
+
+    # Initialize the store with products
+    best_buy = Store([macbook, earbuds, pixel_phone, windows_license, shipping_fee])
+
+    # Start the store menu
     start(best_buy)
 
 
 def start(store_obj):
     """Displays the store menu and handles user interaction."""
     while True:
-        print("Store Menu")
+        print("\nStore Menu")
         print("------------")
         print("1. List all products in store")
         print("2. Show total amount in store")
@@ -37,16 +42,16 @@ def start(store_obj):
         print("4. Quit")
 
         try:
-            choice = int(input("Enter your choice:"))
+            choice = int(input("Enter your choice: "))
         except ValueError:
-            print("Invalid choice.please choose a valid option")
+            print("Invalid choice. Please enter a valid number.")
             continue
 
         if choice == 1:
             print("\n------ Available Products ------")
             available_products = store_obj.get_all_products()
             for idx, product in enumerate(available_products, start=1):
-                print(f"{idx}. {product._name}, Price: ${product.price:.2f}, Quantity: {product.quantity}")
+                print(f"{idx}. {product.show()}")  # __str__ method ensures readable output
 
         elif choice == 2:
             total_quantity = store_obj.get_total_quantity()
@@ -62,30 +67,29 @@ def start(store_obj):
 
             print("\n------ Available Products ------")
             for idx, product in enumerate(available_products, start=1):
-                print(f"{idx}. {product._name}, Price: ${product.price:.2f}, Quantity: {product.quantity}")
-
-            print("\nWhen you want to finish ordering, enter empty text.")
+                print(f"{idx}. {product.show()}")
 
             while True:
-                product_name = input("\nWhich product # do you want? ").strip()
-                if product_name == "":
+                product_input = input("\nWhich product # do you want?").strip()
+                if product_input == "":
                     break
+
                 product = None
 
                 # Check if the input is a number (numeric selection)
-                if product_name.isdigit():
-                    product_number = int(product_name)
+                if product_input.isdigit():
+                    product_number = int(product_input)
                     if 1 <= product_number <= len(available_products):
                         product = available_products[product_number - 1]
                     else:
                         print("Invalid product number. Please enter a valid number.")
                         continue
                 else:
-                    # Check if the input matches a product name (name selection)
-                    product = next((p for p in available_products if p._name.lower() == product_name), None)
+                    # Check if input matches a product name
+                    product = next((p for p in available_products if p._name.lower() == product_input.lower()), None)
 
                 if not product:
-                    print(f"Error: Product not found! Please enter a valid product name.")
+                    print("Error: Product not found! Please enter a valid product name.")
                     continue
 
                 try:
@@ -95,10 +99,10 @@ def start(store_obj):
                         continue
 
                     # Check for LimitedProduct restrictions
-                    if isinstance(product, products.LimitedProduct) and quantity > product.maximum:
+                    if isinstance(product, LimitedProduct) and quantity > product.maximum:
                         print(f"Error: Cannot order more than {product.maximum} of this product.")
                         continue
-                    elif not isinstance(product, products.NonStockedProduct) and quantity > product.get_quantity():
+                    elif not isinstance(product, NonStockedProduct) and quantity > product.get_quantity():
                         print(f"Error: Not enough stock! Only {product.get_quantity()} available.")
                         continue
 
@@ -114,10 +118,6 @@ def start(store_obj):
                 except Exception as e:
                     print(f"Error processing order: {e}")
 
-            # Ask user if they want to continue ordering or return to the menu
-            cont = input("\nWould you like to order more items? (yes/no): ").strip().lower()
-            if cont != "yes":
-                break
 
         elif choice == 4:
             print("Thank you for shopping with us! Goodbye.")
@@ -126,11 +126,6 @@ def start(store_obj):
         else:
             print("Invalid choice. Please enter a valid option.")
 
+
 if __name__ == "__main__":
     main()
-
-
-
-
-
-

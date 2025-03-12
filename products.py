@@ -5,9 +5,9 @@ class Product:
         if not name:
             raise ValueError("Product name cannot be empty")
         if price <= 0:
-            raise ValueError("price cannot be negative")
+            raise ValueError("Price cannot be negative")
         if quantity < 0:
-            raise ValueError("quantity cannot be negative")
+            raise ValueError("Quantity cannot be negative")
 
         self._name = name
         self.price = price
@@ -15,30 +15,34 @@ class Product:
         self.active = True
         self.promotion = None
 
+    def __str__(self):
+        """Returns a readable string representation of the product."""
+        promo_info = f" - Promotion: {self.promotion.name}" if self.promotion else ""
+        return f"{self._name}, Price: ${self.price:.2f}, Quantity: {self.quantity}{promo_info}"
 
-    def get_quantity(self) :
-        """Getter function for quantity.Returns the quantity (int)."""
+    def __repr__(self):
+        """Returns a developer-friendly representation of the object."""
+        return f"Product(name='{self._name}', price={self.price}, quantity={self.quantity})"
+
+    def get_quantity(self):
+        """Getter function for quantity. Returns the quantity (int)."""
         return self.quantity
-
 
     def set_quantity(self, quantity):
         """Setter function for quantity. If quantity reaches 0, deactivates the product."""
         if quantity < 0:
-            raise ValueError("quantity cannot be negative")
+            raise ValueError("Quantity cannot be negative")
         self.quantity = quantity
         if self.quantity == 0:
             self.deactivate()
 
-
     def is_active(self):
-        """Getter function for active.Returns True if the product is active, otherwise False."""
+        """Getter function for active. Returns True if the product is active, otherwise False."""
         return self.active
-
 
     def activate(self):
         """Activates the product."""
         self.active = True
-
 
     def deactivate(self):
         """Deactivates the product."""
@@ -54,18 +58,17 @@ class Product:
             raise TypeError("Invalid promotion type.")
         self.promotion = promotion
 
-
-    def show(self) :
-        """Returns a string that represents the product"""
-        promo_info = f"Promotion:{self.promotion.name}"if self.promotion else""
-        return f"{self._name}, Price{self.price}, Quantity{self.quantity}{promo_info}"
+    def show(self):
+        """Returns a string that represents the product."""
+        promo_info = f"Promotion: {self.promotion.name}" if self.promotion else "Promotion: None"
+        return f"{self._name}, Price: ${self.price}, Quantity: {self.quantity}, {promo_info}"
 
 
     def buy(self, quantity):
         if quantity <= 0:
             raise ValueError("Purchase quantity must be greater than zero.")
         if quantity > self.quantity:
-            raise ValueError("not enough stock available")
+            raise ValueError("Not enough stock available")
 
         # Apply promotion if available
         total_price = self.promotion.apply_promotion(self, quantity) if self.promotion else self.price * quantity
@@ -83,11 +86,18 @@ class NonStockedProduct(Product):
         # Always set quantity to 0 for non-stocked products
         super().__init__(name, price, quantity=0)
 
+    def __str__(self):
+        return f"{self._name}, Price: ${self.price:.2f}, This product is not stocked."
+
+
+    def __repr__(self):
+        return f"NonStockedProduct(name='{self._name}', price={self.price})"
+
 
     def show(self):
-        # Override the show method to reflect the maximum purchase limit
-        return f"{self._name}, {self.price},This product is not stocked and quantity is always 0."
-
+        """Override the show method to reflect unlimited purchase capability"""
+        promo_info = f" - Promotion: {self.promotion.name}" if self.promotion else " - Promotion: None"
+        return f"{self._name}, Price: ${self.price:.2f}, Quantity: Unlimited{promo_info}"
 
     def buy(self, quantity):
         """Allows purchasing without checking stock since it's a non-stocked product."""
@@ -102,13 +112,18 @@ class LimitedProduct(Product):
         super().__init__(name, price, quantity)
         self.maximum = maximum  # Maximum purchase quantity per order
 
+    def __str__(self):
+        return f"{self._name}, Price: ${self.price:.2f}, Maximum per order: {self.maximum}"
+
+    def __repr__(self):
+        return f"LimitedProduct(name='{self._name}', price={self.price}, maximum={self.maximum})"
 
     def show(self):
-        # Override the show method to reflect the maximum purchase limit
-        return f"{self._name}, Price: {self.price}, Maximum per order: {self.maximum}"
+        """Override the show method to reflect the maximum purchase limit"""
+        promo_info = f"Promotion: {self.promotion.name}" if self.promotion else "Promotion: None"
+        return f"{self._name}, Price: ${self.price}, Limited to {self.maximum} per order!, {promo_info}"
 
-
-    def buy(self,quantity):
+    def buy(self, quantity):
         if quantity > self.maximum:
             raise ValueError(f"Cannot order more than {self.maximum} of this product.")
         # Call the parent class' buy method to handle quantity and price deduction
@@ -142,7 +157,6 @@ def main():
     print(mac.show())
     print(windows_license.show())
     print(shipping_fee.show())
-
 
 if __name__ == "__main__":
     main()
