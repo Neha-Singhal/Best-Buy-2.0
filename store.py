@@ -1,5 +1,5 @@
-from products import Product
-
+from products import Product, NonStockedProduct, LimitedProduct
+from promotion import PercentDiscount
 
 class Store:
     def __init__(self, products=None):
@@ -26,19 +26,24 @@ class Store:
         """Returns all products in the store that are active."""
         return [product for product in self.products if product.is_active()]
 
+
     def order(self, shopping_list):
         """Processes an order of multiple products and returns the total cost."""
         total_price = 0
         for product, quantity in shopping_list:
-            # Ensure enough stock is available before processing the order
-            if product.get_quantity() < quantity:
-                print(
-                    f"Error: Not enough stock for {product._name}. Available: {product.get_quantity()}, Requested: {quantity}")
-                continue  # Skip this product if not enough stock
+            if not isinstance(product, NonStockedProduct):
+                """Ensure enough stock is available before processing the order"""
+                if product.get_quantity() < quantity:
+                    print(
+                        f"Error: Not enough stock for {product._name}. Available: {product.get_quantity()}, Requested: {quantity}"
+                    )
+                    continue
 
-            total_price += product.buy(quantity)  # Process the order if stock is available
+            # Process the order and calculate price
+
+            total_price += product.buy(quantity)
+
         return total_price
-
 
 def main():
     product_list = [
@@ -52,10 +57,10 @@ def main():
     # Get all active products
     products = best_buy.get_all_products()
     print("Total quantity in store:", best_buy.get_total_quantity())
-
     # Test the order functionality
     order_cost = best_buy.order([(products[0], 1), (products[1], 2)])
     print(f"Order cost: ${order_cost:.2f}")
+
 
 
 if __name__ == "__main__":

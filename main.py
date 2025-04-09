@@ -114,7 +114,8 @@ def start(store_obj):
             if shopping_list:
                 try:
                     total_price = store_obj.order(shopping_list)
-                    print(f"\nTotal price of your order: ${total_price:.2f}")
+                    print(f"**********")
+                    print(f"Order made! Total Payment: ${total_price:.2f}")
                 except Exception as e:
                     print(f"Error processing order: {e}")
 

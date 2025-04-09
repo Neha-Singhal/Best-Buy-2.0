@@ -38,6 +38,7 @@ class SecondHalfPrice(Promotion):
 
 # Buy 2, get 1 free
 class ThirdOneFree(Promotion):
+    """Buy 2, get 1 free Promotion"""
     def __init__(self, name: str):
         super().__init__(name)
 

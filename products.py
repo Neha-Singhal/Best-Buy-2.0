@@ -1,4 +1,4 @@
-import promotion
+from promotion import Promotion
 
 class Product:
     def __init__(self, name, price, quantity):
@@ -87,6 +87,7 @@ class NonStockedProduct(Product):
         super().__init__(name, price, quantity=0)
 
     def __str__(self):
+        promo_info = f" - Promotion: {self.promotion.name}" if self.promotion else ""
         return f"{self._name}, Price: ${self.price:.2f}, This product is not stocked."
 
 
@@ -103,8 +104,9 @@ class NonStockedProduct(Product):
         """Allows purchasing without checking stock since it's a non-stocked product."""
         if quantity <= 0:
             raise ValueError("Purchase quantity must be greater than zero.")
-        return quantity * self.price  # No stock reduction, just price calculation
-
+        if self.promotion:
+            return self.promotion.apply_promotion(self, quantity)
+        return self.price * quantity
 
 # LimitedProduct class: inherits from Product
 class LimitedProduct(Product):
