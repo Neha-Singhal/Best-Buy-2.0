@@ -1,5 +1,6 @@
 from products import Product, NonStockedProduct, LimitedProduct
 from promotion import PercentDiscount
+from collections import defaultdict
 
 class Store:
     def __init__(self, products=None):
@@ -39,11 +40,17 @@ class Store:
                     )
                     continue
 
-            # Process the order and calculate price
-
+            """ Process the order and calculate price with promotion"""
             total_price += product.buy(quantity)
 
         return total_price
+
+def merge_cart_items(cart_items):
+    """Merge quantities of the same product in the shopping cart."""
+    merged = defaultdict(int)
+    for product, quantity in cart_items:
+        merged[product] += quantity
+    return list(merged.items())
 
 def main():
     product_list = [
@@ -57,6 +64,11 @@ def main():
     # Get all active products
     products = best_buy.get_all_products()
     print("Total quantity in store:", best_buy.get_total_quantity())
+
+    # Add duplicate items intentionally
+    raw_cart = [(products[0], 1), (products[1], 1), (products[1], 1)]  # Bose added twice
+    merged_cart = merge_cart_items(raw_cart)
+
     # Test the order functionality
     order_cost = best_buy.order([(products[0], 1), (products[1], 2)])
     print(f"Order cost: ${order_cost:.2f}")
